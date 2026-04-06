@@ -24,7 +24,7 @@ Five phases deliver a working novel reader that camouflages itself as Claude AI 
   3. After `/novel next` then closing the session, re-running `/novel` resumes from the correct chapter without re-prompting
   4. All eight subcommands (`/novel`, `next`, `prev`, `search`, `toc`, `shelf`, `use`) are registered and return a coherent (even if stubbed) response
   5. Navigation hint block appears at the end of every chapter output
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 01-01: Skill file and Python entry point (`novel.py` + `.claude/commands/novel.md`), argument dispatch for all eight subcommands
