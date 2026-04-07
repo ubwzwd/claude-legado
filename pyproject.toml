@@ -6,7 +6,13 @@ build-backend = "setuptools.build_meta"
 name = "claude-legado"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["rich>=13.7"]
+dependencies = [
+    "rich>=13.7",
+    "lxml>=6.0",
+    "cssselect>=1.4",
+    "jsonpath-ng>=1.8",
+    "quickjs>=1.19",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
