@@ -42,13 +42,13 @@ Plans:
   3. An XPath rule and a JSONPath rule each extract correct values from their respective fixtures
   4. A `##pattern##replacement` replaceRegex chain transforms a string correctly
   5. An `@js: result.trim()` expression and a `<js>...</js>` block both execute via quickjs with the correct `result` and `baseUrl` context variables
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: Book source JSON parser and validator (`SRC-01`, `SRC-02`) — load single object or array, check required fields
-- [ ] 02-02: Selector engine — CSS (`lxml`+`cssselect`), XPath (`lxml`), JSONPath (`jsonpath-ng`), auto-detect prefix (`SRC-03`, `SRC-04`, `SRC-05`)
-- [ ] 02-03: Post-processing pipeline — replaceRegex chains, URL template substitution (`SRC-06`, `SRC-10`)
-- [ ] 02-04: JS execution layer — quickjs binding, `@js:` and `<js>` dispatch, `result`/`baseUrl`/`java.*` context injection (`SRC-07`, `SRC-08`, `SRC-09`)
+- [ ] 02-01-PLAN.md — Bootstrap: rules sub-package skeleton, _errors.py, _detect.py, _source.py (SRC-01, SRC-02), pyproject.toml deps, all Wave 0 test stubs
+- [ ] 02-02-PLAN.md — Selector engine: _css.py, _xpath.py, _jsonpath.py, evaluate() dispatcher (SRC-03, SRC-04, SRC-05)
+- [ ] 02-03-PLAN.md — Post-processing: _regex.py (replaceRegex), _templates.py (URL template) (SRC-06, SRC-10)
+- [ ] 02-04-PLAN.md — JS layer: _js.py (quickjs), evaluate() fully wired for @js: and <js> (SRC-07, SRC-08, SRC-09)
 
 ### Phase 3: HTTP + Source Loading
 **Goal**: The tool fetches real novel website pages using book source headers and cookies, correctly transcoding GBK responses, and follows multi-page TOC and content chains
