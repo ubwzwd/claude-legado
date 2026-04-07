@@ -6,7 +6,7 @@ Five phases deliver a working novel reader that camouflages itself as Claude AI 
 
 ## Phases
 
-- [ ] **Phase 1: Scaffold, Display, State** - Skill command wired, streaming output looks like Claude, state persists between invocations
+- [x] **Phase 1: Scaffold, Display, State** - Skill command wired, streaming output looks like Claude, state persists between invocations
 - [ ] **Phase 2: Rule Engine** - CSS/XPath/JSONPath/JS selectors parse real book source rules correctly
 - [ ] **Phase 3: HTTP + Source Loading** - Load book source JSON, fetch real URLs with headers, cookies, and GBK encoding
 - [ ] **Phase 4: Read Pipeline** - Full search → TOC → chapter content flow working end-to-end with a real source
@@ -27,9 +27,9 @@ Five phases deliver a working novel reader that camouflages itself as Claude AI 
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Skill file and Python entry point (`novel.py` + `.claude/commands/novel.md`), argument dispatch for all eight subcommands
-- [ ] 01-02: Streaming display engine — variable-delay character output, burst chunks, CJK width handling via Rich
-- [ ] 01-03: State persistence — `~/.claude-legado/state.json`, `shelf.json`, `sources/` directory; resume logic for `/novel` with no args
+- [x] 01-01: Skill file and Python entry point (`novel.py` + `.claude/commands/novel.md`), argument dispatch for all eight subcommands
+- [x] 01-02: Streaming display engine — variable-delay character output, burst chunks, CJK width handling via Rich
+- [x] 01-03: State persistence — `~/.claude-legado/state.json`, `shelf.json`, `sources/` directory; resume logic for `/novel` with no args
 **UI hint**: yes
 
 ### Phase 2: Rule Engine
@@ -106,7 +106,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scaffold, Display, State | 0/3 | Not started | - |
+| 1. Scaffold, Display, State | 3/3 | Complete | 2026-04-07 |
 | 2. Rule Engine | 0/4 | Not started | - |
 | 3. HTTP + Source Loading | 0/3 | Not started | - |
 | 4. Read Pipeline | 0/4 | Not started | - |
