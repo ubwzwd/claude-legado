@@ -1,0 +1,25 @@
+{
+  "bookSourceUrl": "https://example.com",
+  "bookSourceName": "测试书源",
+  "bookSourceType": 0,
+  "ruleSearch": {
+    "bookList": "css:.book-item",
+    "name": "css:.title@text",
+    "author": "css:.author@text",
+    "bookUrl": "css:a@href"
+  },
+  "ruleBookInfo": {
+    "name": "css:h1@text",
+    "author": "css:.author@text",
+    "intro": "css:.intro@text",
+    "coverUrl": "css:img.cover@src"
+  },
+  "ruleToc": {
+    "chapterList": "css:.chapter-list a",
+    "chapterName": "css:a@text",
+    "chapterUrl": "css:a@href"
+  },
+  "ruleContent": {
+    "content": "css:#content@text"
+  }
+}
