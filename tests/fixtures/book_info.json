@@ -1,0 +1,13 @@
+{
+  "book": {
+    "title": "斗破苍穹",
+    "author": "天蚕土豆",
+    "cover": "https://example.com/dpcq.jpg",
+    "intro": "天才少年萧炎，在突然间完全失去修炼天赋后...",
+    "status": "完结"
+  },
+  "chapters": [
+    {"name": "第一章 陨落的天才", "url": "/chapter/1"},
+    {"name": "第二章 功法斗气", "url": "/chapter/2"}
+  ]
+}
