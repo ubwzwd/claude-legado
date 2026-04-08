@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 2 planned — ready to execute
-last_updated: "2026-04-08T00:00:00.000Z"
-last_activity: 2026-04-08 -- Phase 02 planning complete (4 plans in 3 waves)
+status: Phase 02 Complete — Ready for Phase 03
+stopped_at: Phase 3 context gathered (discuss mode)
+last_updated: "2026-04-08T03:26:51.799Z"
+last_activity: 2026-04-08 -- Phase 02 verified (61/61 tests pass)
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 3
-  percent: 43
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -21,15 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Read Chinese web novels in Claude Code, looking indistinguishable from real AI work
-**Current focus:** Phase 02 — Rule Engine
+**Current focus:** Phase 03 — HTTP + Source Loading
 
 ## Current Position
 
-Phase: 01 (scaffold-display-state) — COMPLETE
-Next: Execute Phase 02 — Rule Engine
-Last activity: 2026-04-08 -- Phase 02 planning complete (4 plans, 3 waves)
+Phase: 03 (http-source-loading) — NEXT
+Plan: 0 of 3
+Next: Execute Phase 03 — HTTP + Source Loading
+Last activity: 2026-04-08 -- Phase 02 verified (61/61 tests pass)
 
-Progress: [██░░░░░░░░] 20%
+Progress: [████░░░░░░] 40%
 
 ## Phase 01 Summary
 
@@ -40,24 +41,37 @@ Phase 01 completed all 3 plans (01-01, 01-02, 01-03). 26 tests pass. Human check
 - All 8 subcommands dispatch correctly (4 are intentional stubs for later phases)
 - `.claude/commands/novel.md` skill wired to `PYTHONPATH=src python -m novel $ARGUMENTS`
 
+## Phase 02 Summary
+
+Phase 02 completed all 4 plans (02-01 through 02-04). 61 tests pass. Verified 2026-04-08.
+
+- `evaluate(rule, content)` dispatches all 5 legado rule types: CSS, XPath, JSONPath, JS_INLINE, JS_BLOCK
+- `evaluate_list(rule, content)` returns `list[str]` for all 5 rule types
+- `load_book_source(path)` parses single-object and array JSON with required-field validation
+- `apply_replace_regex()` implements `##pattern##replacement` chain post-processing
+- `apply_url_template()` replaces `{{key}}` placeholders for URL construction
+- `java.{base64Decode,md5}` bridge implemented in quickjs context; `java.ajax()` raises JSException per D-02
+- All SRC-01 through SRC-10 requirements satisfied
+
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
-- Average duration: ~45 min/plan
-- Total execution time: ~2.3 hours
+- Total plans completed: 7
+- Average duration: ~25 min/plan (Phase 02 plans were fast: 3-15 min each)
+- Total execution time: ~2.3 hours (Phase 01) + ~30 min (Phase 02)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 — Scaffold, Display, State | 3 | ~2.3h | ~45min |
+| 02 — Rule Engine | 4 | ~30min | ~8min |
 
 **Recent Trend:**
 
-- Last 3 plans: 01-01 (15min), 01-02 (3min), 01-03 (110min)
-- Trend: fast execution; Plan 03 longer due to display/fake_book dependency build
+- Last 4 plans: 02-01 (5min), 02-02 (3min), 02-03 (5min), 02-04 (15min)
+- Trend: fast execution with TDD approach keeping each plan focused
 
 *Updated after each plan completion*
 
@@ -75,6 +89,11 @@ Recent decisions affecting current work:
 - [Phase 01]: Per-function Console() instantiation (not module-level) avoids Rich test env detection
 - [Phase 01]: Atomic write via `tmp + Path.replace()` for all JSON state writes (T-03-01 mitigation)
 - [Phase 01]: `dispatch()` falls through to `_stream_current()` for unknown/empty args — never errors
+- [Phase 02]: `detect_rule_type()` prefix order: xpath: > css: > $./$[ > @js: > <js>...</js>
+- [Phase 02]: Fresh `quickjs.Context()` per `eval_js()` call — prevents JS global state leakage
+- [Phase 02]: `java.ajax()` raises NotImplementedError surfacing as `quickjs.JSException` — Phase 3 will wire real HTTP
+- [Phase 02]: `eval_jsonpath` passes full rule (with `$` prefix) not rule_body — jsonpath-ng requires the full `$` expression
+- [Phase 02]: `replaceRegex` chain `##[0-9]+####[a-z]+##X##` on `'abc123def'` yields `'X'` (not `'XXX'`) — digits stripped first
 
 ### Pending Todos
 
@@ -82,11 +101,11 @@ None.
 
 ### Blockers/Concerns
 
-- HIGH risk: `java.ajax()` sync-in-JS — must implement as async wrapper injecting pre-fetched result into quickjs context (Phase 2/3 boundary)
+- HIGH risk: `java.ajax()` sync-in-JS — Phase 3 must implement as async wrapper injecting pre-fetched result into quickjs context before `eval_js()` call
 - HIGH risk: 笔趣阁 domain instability — ship with source import workflow, never hardcode URLs
 
 ## Session Continuity
 
-Last session: 2026-04-07T14:05:22.876Z
-Stopped at: Phase 2 context gathered (discuss mode)
-Resume file: .planning/phases/02-rule-engine/02-CONTEXT.md
+Last session: 2026-04-08T03:26:51.766Z
+Stopped at: Phase 3 context gathered (discuss mode)
+Resume file: .planning/phases/03-http-source-loading/03-CONTEXT.md
