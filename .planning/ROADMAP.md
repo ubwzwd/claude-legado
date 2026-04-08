@@ -7,7 +7,7 @@ Five phases deliver a working novel reader that camouflages itself as Claude AI 
 ## Phases
 
 - [x] **Phase 1: Scaffold, Display, State** - Skill command wired, streaming output looks like Claude, state persists between invocations
-- [ ] **Phase 2: Rule Engine** - CSS/XPath/JSONPath/JS selectors parse real book source rules correctly
+- [x] **Phase 2: Rule Engine** - CSS/XPath/JSONPath/JS selectors parse real book source rules correctly
 - [ ] **Phase 3: HTTP + Source Loading** - Load book source JSON, fetch real URLs with headers, cookies, and GBK encoding
 - [ ] **Phase 4: Read Pipeline** - Full search → TOC → chapter content flow working end-to-end with a real source
 - [ ] **Phase 5: Polish** - Error handling, bookshelf UX, and README — daily-use quality
@@ -45,10 +45,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Bootstrap: rules sub-package skeleton, _errors.py, _detect.py, _source.py (SRC-01, SRC-02), pyproject.toml deps, all Wave 0 test stubs
-- [ ] 02-02-PLAN.md — Selector engine: _css.py, _xpath.py, _jsonpath.py, evaluate() dispatcher (SRC-03, SRC-04, SRC-05)
-- [ ] 02-03-PLAN.md — Post-processing: _regex.py (replaceRegex), _templates.py (URL template) (SRC-06, SRC-10)
-- [ ] 02-04-PLAN.md — JS layer: _js.py (quickjs), evaluate() fully wired for @js: and <js> (SRC-07, SRC-08, SRC-09)
+- [x] 02-01-PLAN.md — Bootstrap: rules sub-package skeleton, _errors.py, _detect.py, _source.py (SRC-01, SRC-02), pyproject.toml deps, all Wave 0 test stubs
+- [x] 02-02-PLAN.md — Selector engine: _css.py, _xpath.py, _jsonpath.py, evaluate() dispatcher (SRC-03, SRC-04, SRC-05)
+- [x] 02-03-PLAN.md — Post-processing: _regex.py (replaceRegex), _templates.py (URL template) (SRC-06, SRC-10)
+- [x] 02-04-PLAN.md — JS layer: _js.py (quickjs), evaluate() fully wired for @js: and <js> (SRC-07, SRC-08, SRC-09)
 
 ### Phase 3: HTTP + Source Loading
 **Goal**: The tool fetches real novel website pages using book source headers and cookies, correctly transcoding GBK responses, and follows multi-page TOC and content chains
@@ -59,12 +59,11 @@ Plans:
   2. A GBK-encoded novel site response is fetched and displayed as correct UTF-8 Chinese text
   3. A multi-page TOC (site with `nextTocUrl`) is fully traversed and all chapter links are collected
   4. HTTP headers from the book source `header` field are sent with every request to that source's domain
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: HTTP client setup — `httpx` or `requests` with custom headers from book source, per-domain cookie jar (`HTTP-01`, `HTTP-03`)
-- [ ] 03-02: Encoding detection and GBK transcoding — `chardet` integration, UTF-8 normalisation (`HTTP-02`)
-- [ ] 03-03: Pagination helpers — `nextTocUrl` follow-until-empty loop, `nextContentUrl` follow-until-empty loop (`HTTP-04`, `HTTP-05`)
+- [ ] 03-01-PLAN.md — HTTP client + encoding + /novel use: _client.py (headers, fetch, cookie jar), _encoding.py (charset cascade), /novel use command wiring (HTTP-01, HTTP-02, HTTP-03)
+- [ ] 03-02-PLAN.md — Pagination + ajax wiring: _pagination.py (follow_toc_pages, follow_content_pages), _js.py two-pass ajax injection (HTTP-04, HTTP-05)
 
 ### Phase 4: Read Pipeline
 **Goal**: A user can search for a book, add it to the shelf, open its TOC, and read a chapter — all against a real live novel source
@@ -107,7 +106,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold, Display, State | 3/3 | Complete | 2026-04-07 |
-| 2. Rule Engine | 0/4 | Not started | - |
-| 3. HTTP + Source Loading | 0/3 | Not started | - |
+| 2. Rule Engine | 4/4 | Complete | 2026-04-08 |
+| 3. HTTP + Source Loading | 0/2 | Not started | - |
 | 4. Read Pipeline | 0/4 | Not started | - |
 | 5. Polish | 0/3 | Not started | - |
