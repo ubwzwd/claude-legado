@@ -8,7 +8,6 @@ FIXTURES = Path(__file__).parent / 'fixtures'
 HTML_TITLE = (FIXTURES / 'html_title.html').read_text(encoding='utf-8')
 
 
-@pytest.mark.xfail(reason='css eval not yet implemented', strict=True)
 def test_text_attr():
     """css:.title@text extracts text content of .title element."""
     from novel.rules._css import eval_css
@@ -16,7 +15,6 @@ def test_text_attr():
     assert result == '道可道，非常道'
 
 
-@pytest.mark.xfail(reason='css eval not yet implemented', strict=True)
 def test_href_attr():
     """css:a.chapter@href extracts href from first .chapter anchor."""
     from novel.rules._css import eval_css
@@ -25,7 +23,6 @@ def test_href_attr():
     assert result == '/chapter/1'
 
 
-@pytest.mark.xfail(reason='css eval not yet implemented', strict=True)
 def test_no_match():
     """css with no match returns empty string (not RuleError)."""
     from novel.rules._css import eval_css
