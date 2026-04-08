@@ -4,7 +4,6 @@ from __future__ import annotations
 import pytest
 
 
-@pytest.mark.xfail(reason='js eval not yet implemented', strict=True)
 def test_inline():
     """@js: inline expression: result.trim() trims the content string."""
     from novel.rules._js import eval_js
@@ -12,7 +11,6 @@ def test_inline():
     assert result == 'hello world'
 
 
-@pytest.mark.xfail(reason='js eval not yet implemented', strict=True)
 def test_block():
     """<js> block: modifying result variable persists after eval."""
     from novel.rules._js import eval_js
@@ -21,7 +19,6 @@ def test_block():
     assert result == 'HELLO'
 
 
-@pytest.mark.xfail(reason='js eval not yet implemented', strict=True)
 def test_java_base64():
     """java.base64Decode() decodes base64 correctly."""
     from novel.rules._js import eval_js
@@ -31,7 +28,6 @@ def test_java_base64():
     assert result == '测试'
 
 
-@pytest.mark.xfail(reason='js eval not yet implemented', strict=True)
 def test_java_md5():
     """java.md5() returns hex MD5 of input string."""
     from novel.rules._js import eval_js
@@ -41,7 +37,6 @@ def test_java_md5():
     assert result == expected
 
 
-@pytest.mark.xfail(reason='js eval not yet implemented', strict=True)
 def test_ajax_stub():
     """java.ajax() raises JSException wrapping NotImplementedError (D-02)."""
     import quickjs
