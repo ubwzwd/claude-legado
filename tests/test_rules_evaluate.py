@@ -43,7 +43,6 @@ def test_rule_error_on_bad_rule():
         evaluate('NOTARULE', '<html/>')
 
 
-@pytest.mark.xfail(reason='url template not yet implemented', strict=True)
 def test_url_template():
     """apply_url_template replaces {{searchKey}} and leaves unknown keys intact."""
     from novel.rules._templates import apply_url_template
