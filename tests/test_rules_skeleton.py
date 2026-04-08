@@ -16,11 +16,11 @@ def test_evaluate_list_importable():
     assert callable(evaluate_list)
 
 
-def test_evaluate_raises_not_implemented():
-    """evaluate() raises NotImplementedError (stub)."""
+def test_evaluate_css_works():
+    """evaluate() dispatches CSS rule and returns matched text."""
     from novel.rules import evaluate
-    with pytest.raises(NotImplementedError):
-        evaluate('css:.title@text', '<h1 class="title">X</h1>')
+    result = evaluate('css:.title@text', '<h1 class="title">X</h1>')
+    assert result == 'X'
 
 
 def test_rule_error_str():

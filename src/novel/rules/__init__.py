@@ -18,6 +18,7 @@ from novel.rules._errors import RuleError
 from novel.rules._css import eval_css, eval_css_list
 from novel.rules._xpath import eval_xpath, eval_xpath_list
 from novel.rules._jsonpath import eval_jsonpath, eval_jsonpath_list
+from novel.rules._js import eval_js
 
 
 def evaluate(rule: str, content: str | dict, base_url: str = '') -> str:
@@ -45,9 +46,10 @@ def evaluate(rule: str, content: str | dict, base_url: str = '') -> str:
             return eval_xpath(rule_body, content)
         elif rule_type == RuleType.JSONPATH:
             return eval_jsonpath(rule, content)
-        elif rule_type in (RuleType.JS_INLINE, RuleType.JS_BLOCK):
-            # Wired in plan 02-04
-            raise NotImplementedError('JS rules wired in plan 02-04')
+        elif rule_type == RuleType.JS_INLINE:
+            return eval_js(rule_body, str(content) if not isinstance(content, str) else content, base_url, mode='inline')
+        elif rule_type == RuleType.JS_BLOCK:
+            return eval_js(rule_body, str(content) if not isinstance(content, str) else content, base_url, mode='block')
         else:
             raise ValueError(f'Unknown rule type: {rule_type!r}')
     except RuleError:
@@ -76,9 +78,12 @@ def evaluate_list(rule: str, content: str | dict, base_url: str = '') -> list[st
             return eval_xpath_list(rule_body, content)
         elif rule_type == RuleType.JSONPATH:
             return eval_jsonpath_list(rule, content)
-        elif rule_type in (RuleType.JS_INLINE, RuleType.JS_BLOCK):
-            # JS rules return a single string; wrap in list
-            raise NotImplementedError('JS rules wired in plan 02-04')
+        elif rule_type == RuleType.JS_INLINE:
+            result = eval_js(rule_body, str(content) if not isinstance(content, str) else content, base_url, mode='inline')
+            return [result]
+        elif rule_type == RuleType.JS_BLOCK:
+            result = eval_js(rule_body, str(content) if not isinstance(content, str) else content, base_url, mode='block')
+            return [result]
         else:
             raise ValueError(f'Unknown rule type: {rule_type!r}')
     except RuleError:
