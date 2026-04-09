@@ -10,7 +10,7 @@ from novel.display import stream_chapter
 from novel.state import ensure_dirs, load_state, save_state, SOURCES_DIR, save_search_cache, load_search_cache, load_shelf, save_shelf, set_active_book
 from novel.data.fake_book import FAKE_BOOK, get_fake_chapter
 from novel.rules._source import load_book_source
-from novel.http import fetch
+from novel.http import fetch, follow_toc_pages
 from novel.rules import evaluate_list, evaluate
 
 STUB_COMMANDS = {
@@ -289,6 +289,107 @@ def _list_shelf() -> None:
         print(f"[{i}]{active_marker} {name} - {author}")
 
 
+def _show_toc(args: list[str]) -> None:
+    """Implement /novel toc <page>."""
+    state = load_state()
+    current_book_id = state.get('current_book')
+    if not current_book_id or current_book_id == 'fake-book-01':
+        print("No active book selected.")
+        return
+        
+    shelf = load_shelf()
+    book = None
+    for item in shelf:
+        if item.get('name') == current_book_id:
+            book = item
+            break
+            
+    if not book:
+        print("Active book not found in shelf.")
+        return
+        
+    source_path_str = state.get('source')
+    if not source_path_str or source_path_str == 'builtin':
+         print('No active source to fetch TOC.')
+         return
+         
+    try:
+         source = load_book_source(Path(source_path_str))
+    except Exception as e:
+         print(f'Error loading source: {e}')
+         return
+         
+    toc_url = book.get('tocUrl') or book.get('bookUrl')
+    if not toc_url:
+         print("Book has no TOC URL or Book URL.")
+         return
+         
+    toc_url = urllib.parse.urljoin(source['bookSourceUrl'], toc_url)
+         
+    rule_next_toc = source.get('ruleTocNextUrl', '')
+    
+    pages_html = follow_toc_pages(
+        start_url=toc_url,
+        fetch_fn=lambda u: fetch(urllib.parse.urljoin(source['bookSourceUrl'], u), source)[0],
+        eval_fn=lambda r, h: str(evaluate(r, h) or ''),
+        next_url_rule=rule_next_toc
+    )
+    
+    rule_toc = source.get('ruleToc')
+    if not rule_toc:
+        print("Source missing ruleToc.")
+        return
+        
+    rule_toc_name = source.get('ruleTocName', '')
+    rule_toc_url = source.get('ruleTocUrl', '')
+    
+    chapters = []
+    
+    for page_html in pages_html:
+        items = evaluate_list(rule_toc, page_html)
+        for item in items:
+            name = str(evaluate(rule_toc_name, item) or '').strip() if rule_toc_name else ''
+            url = evaluate(rule_toc_url, item) if rule_toc_url else ''
+            if isinstance(url, list) and url:
+                url = str(url[0]).strip()
+            else:
+                url = str(url or '').strip()
+                
+            chapters.append({'name': name, 'url': url})
+            
+    # Cache chapters
+    book['chapters'] = chapters
+    save_shelf(shelf)
+    
+    if not chapters:
+        print("No chapters found in TOC.")
+        return
+        
+    page = 1
+    if args:
+        try:
+            page = int(args[0])
+        except ValueError:
+             print("Page must be an integer.")
+             return
+             
+    per_page = 50
+    total_pages = (len(chapters) + per_page - 1) // per_page
+    
+    if page < 1 or page > total_pages:
+        if total_pages > 0:
+             print(f"Invalid page. TOC has {total_pages} pages.")
+        return
+        
+    start_idx = (page - 1) * per_page
+    end_idx = min(start_idx + per_page, len(chapters))
+    
+    print(f"TOC for '{book.get('name', 'Unknown')}' (Page {page}/{total_pages}):")
+    for i in range(start_idx, end_idx):
+        ch = chapters[i]
+        print(f"[{i + 1}] {ch.get('name', '[No Name]')}")
+
+
 def _info_book() -> None:
     """Implement /novel info."""
     state = load_state()
@@ -365,7 +466,7 @@ def dispatch(args: list[str]) -> None:
     elif cmd == "read":
         _read_book(args[1:])
     elif cmd == "toc":
-        print(STUB_COMMANDS['toc'])
+        _show_toc(args[1:])
     elif cmd == "shelf":
         _list_shelf()
     elif cmd == "use":

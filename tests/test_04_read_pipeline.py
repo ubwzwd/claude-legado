@@ -101,3 +101,53 @@ def test_book_info_and_add(capsys, fake_source, monkeypatch):
     captured = capsys.readouterr().out
     assert "Title:  Book 1" in captured
     assert "A great book intro." in captured
+
+
+def test_toc_flow(capsys, fake_source, monkeypatch):
+    import novel.state
+    monkeypatch.setattr(novel.state, "STATE_DIR", fake_source.parent)
+    novel.state.SEARCH_CACHE_FILE = fake_source.parent / "search_cache.json"
+    novel.state.SHELF_FILE = fake_source.parent / "shelf.json"
+    novel.state.STATE_FILE = fake_source.parent / "state.json"
+    novel.state.ensure_dirs()
+    
+    # Configure fake source with TOC rules
+    source_config = json.loads(fake_source.read_text())
+    source_config["ruleToc"] = "$.items[*]"
+    source_config["ruleTocName"] = "$.name"
+    source_config["ruleTocUrl"] = "$.url"
+    source_config["ruleTocNextUrl"] = "$.nextUrl"
+    fake_source.write_text(json.dumps(source_config))
+    
+    dispatch(["use", str(fake_source)])
+    
+    # Pre-populate shelf and active book
+    shelf = [
+        {"name": "Book TOC", "author": "Author A", "tocUrl": "/toc/1"}
+    ]
+    novel.state.save_shelf(shelf)
+    novel.state.set_active_book("Book TOC")
+    
+    with respx.mock:
+        toc_page_1 = {
+            "items": [{"name": "Chapter 1", "url": "/ch1"}],
+            "nextUrl": "/toc/2"
+        }
+        toc_page_2 = {
+            "items": [{"name": "Chapter 2", "url": "/ch2"}],
+            "nextUrl": ""
+        }
+        respx.get("https://example.com/toc/1").mock(return_value=Response(200, json=toc_page_1))
+        respx.get("https://example.com/toc/2").mock(return_value=Response(200, json=toc_page_2))
+        
+        dispatch(["toc"])
+        
+    captured = capsys.readouterr().out
+    assert "[1] Chapter 1" in captured
+    assert "[2] Chapter 2" in captured
+    
+    # Verify cached correctly
+    shelf = novel.state.load_shelf()
+    assert "chapters" in shelf[0]
+    assert len(shelf[0]["chapters"]) == 2
+    assert shelf[0]["chapters"][0]["name"] == "Chapter 1"
