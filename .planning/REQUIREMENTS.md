@@ -58,7 +58,7 @@
 
 - [x] **FLOW-01**: Search: build search URL from template → fetch → parse `ruleSearch` → return book list
 - [x] **FLOW-02**: Book info: fetch book detail page → parse `ruleBookInfo` → extract title/author/cover/intro
-- [ ] **FLOW-03**: TOC: fetch TOC page → parse `ruleToc` → return ordered chapter list with URLs
+- [x] **FLOW-03**: TOC: fetch TOC page → parse `ruleToc` → return ordered chapter list with URLs
 - [ ] **FLOW-04**: Content: fetch chapter URL → parse `ruleContent` → return clean text
 - [x] **FLOW-05**: Add book from search result to shelf with first TOC fetch
 
