@@ -42,6 +42,14 @@ def save_state(state: dict) -> None:
     tmp.replace(STATE_FILE)
 
 
+def set_active_book(book_id: str) -> None:
+    """Set the currently active book ID in state."""
+    state = load_state()
+    state['current_book'] = book_id
+    state['chapter_index'] = 0
+    save_state(state)
+
+
 def load_shelf() -> list:
     """Load shelf from SHELF_FILE. Returns empty list on missing or corrupt file."""
     ensure_dirs()
