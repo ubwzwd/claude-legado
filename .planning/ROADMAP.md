@@ -62,7 +62,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — HTTP client + encoding + /novel use: _client.py (headers, fetch, cookie jar), _encoding.py (charset cascade), /novel use command wiring (HTTP-01, HTTP-02, HTTP-03)
+- [x] 03-01-PLAN.md — HTTP client + encoding + /novel use: _client.py (headers, fetch, cookie jar), _encoding.py (charset cascade), /novel use command wiring (HTTP-01, HTTP-02, HTTP-03)
 - [ ] 03-02-PLAN.md — Pagination + ajax wiring: _pagination.py (follow_toc_pages, follow_content_pages), _js.py two-pass ajax injection (HTTP-04, HTTP-05)
 
 ### Phase 4: Read Pipeline

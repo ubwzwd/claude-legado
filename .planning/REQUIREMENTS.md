@@ -48,9 +48,9 @@
 
 ### HTTP Layer
 
-- [ ] **HTTP-01**: Fetch URLs with custom headers from book source `header` field
-- [ ] **HTTP-02**: Auto-detect and transcode GBK/GB2312 responses to UTF-8
-- [ ] **HTTP-03**: Cookie jar per book source domain
+- [x] **HTTP-01**: Fetch URLs with custom headers from book source `header` field
+- [x] **HTTP-02**: Auto-detect and transcode GBK/GB2312 responses to UTF-8
+- [x] **HTTP-03**: Cookie jar per book source domain
 - [ ] **HTTP-04**: Follow multi-page TOC (`nextTocUrl`) until empty
 - [ ] **HTTP-05**: Follow multi-page chapter content (`nextContentUrl`) until empty
 
