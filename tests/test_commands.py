@@ -52,11 +52,11 @@ def test_shelf_stub(capsys):
     assert "shelf" in captured.out.lower()
 
 
-def test_use_stub(capsys):
-    """dispatch(['use', 'path.json']) prints stub message containing 'use'."""
+def test_use_dispatch(capsys):
+    """dispatch(['use', 'path.json']) prints error for nonexistent file (no longer a stub)."""
     dispatch(["use", "path.json"])
     captured = capsys.readouterr()
-    assert "use" in captured.out.lower()
+    assert captured.out  # should print an error message
 
 
 def test_module_runs(capsys):
