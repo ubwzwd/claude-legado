@@ -43,3 +43,35 @@ def test_ajax_stub():
     from novel.rules._js import eval_js
     with pytest.raises(quickjs.JSException):
         eval_js('java.ajax("https://example.com")', '', '', mode='inline')
+
+
+def test_eval_js_ajax_fetcher_recording():
+    """ajax_fetcher callable is invoked when java.ajax() is called in JS."""
+    from novel.rules._js import eval_js
+    captured = []
+    def recorder(url):
+        captured.append(url)
+        return ''
+    eval_js('java.ajax("https://example.com/data")', '', '', mode='inline', ajax_fetcher=recorder)
+    assert captured == ['https://example.com/data']
+
+
+def test_eval_js_prefetched_injection():
+    """prefetched dict provides content for java.ajax() calls."""
+    from novel.rules._js import eval_js
+    pre = {'https://example.com/data': '{"title":"Test"}'}
+    result = eval_js(
+        'java.ajax("https://example.com/data")',
+        '', '', mode='inline',
+        prefetched=pre,
+    )
+    assert result == '{"title":"Test"}'
+
+
+def test_eval_js_ajax_backward_compat():
+    """Without ajax_fetcher or prefetched, java.ajax() still raises JSException."""
+    import quickjs
+    from novel.rules._js import eval_js
+    with pytest.raises(quickjs.JSException):
+        eval_js('java.ajax("https://example.com")', '', '', mode='inline')
+
