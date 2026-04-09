@@ -7,7 +7,7 @@ import urllib.parse
 from pathlib import Path
 
 from novel.display import stream_chapter
-from novel.state import ensure_dirs, load_state, save_state, SOURCES_DIR, save_search_cache
+from novel.state import ensure_dirs, load_state, save_state, SOURCES_DIR, save_search_cache, load_search_cache, load_shelf, save_shelf, set_active_book
 from novel.data.fake_book import FAKE_BOOK, get_fake_chapter
 from novel.rules._source import load_book_source
 from novel.http import fetch
@@ -211,7 +211,136 @@ def _search_books(args: list[str]) -> None:
         print(f"[{i}] {name} - {author} - {source_name}")
 
 
-_RECOGNIZED = {"next", "prev", "search", "toc", "shelf", "use"}
+def _add_book(args: list[str]) -> None:
+    """Implement /novel add <index>."""
+    if not args:
+        print('Usage: /novel add <index>')
+        return
+        
+    try:
+        index = int(args[0])
+    except ValueError:
+        print('Index must be an integer.')
+        return
+        
+    cache = load_search_cache()
+    if index < 1 or index > len(cache):
+        print('Invalid index.')
+        return
+        
+    book = cache[index - 1]
+    
+    state = load_state()
+    source_path_str = state.get('source')
+    if not source_path_str or source_path_str == 'builtin':
+         print('No active source to fetch book info.')
+         return
+         
+    try:
+         source = load_book_source(Path(source_path_str))
+    except (ValueError, json.JSONDecodeError, OSError) as e:
+         print(f'Error loading source: {e}')
+         return
+         
+    book_url = book.get('bookUrl')
+    if not book_url:
+         print('No book URL found in search cache for this book.')
+         return
+         
+    book_url = urllib.parse.urljoin(source['bookSourceUrl'], book_url)
+
+    try:
+         content, _ = fetch(book_url, source)
+    except Exception as e:
+         print(f'Error fetching book info: {e}')
+         return
+         
+    rule_intro = source.get('ruleBookInfoIntro', '')
+    if rule_intro:
+        intro_val = evaluate(rule_intro, content)
+        if isinstance(intro_val, list) and intro_val:
+             book['intro'] = str(intro_val[0]).strip()
+        else:
+             book['intro'] = str(intro_val).strip() if intro_val else '[No intro extracted]'
+    else:
+        book['intro'] = '[No intro extracted]'
+
+    shelf = load_shelf()
+    shelf.append(book)
+    save_shelf(shelf)
+    print(f"Added '{book['name']}' to shelf.")
+
+
+def _list_shelf() -> None:
+    """Implement /novel shelf."""
+    shelf = load_shelf()
+    if not shelf:
+        print('Shelf is empty.')
+        return
+        
+    state = load_state()
+    current_book_id = state.get('current_book')
+        
+    for i, book in enumerate(shelf, start=1):
+        name = book.get('name', '[No name extracted]')
+        author = book.get('author', '[No author extracted]')
+        # Just use name as pseudo ID for active marker since we don't have proper IDs yet
+        active_marker = "*" if current_book_id == name else " "
+        print(f"[{i}]{active_marker} {name} - {author}")
+
+
+def _info_book() -> None:
+    """Implement /novel info."""
+    state = load_state()
+    current_book_id = state.get('current_book')
+    if not current_book_id or current_book_id == 'fake-book-01':
+        if current_book_id == 'fake-book-01':
+            print("Title: " + FAKE_BOOK['title'])
+            print("Author: " + FAKE_BOOK['author'])
+            print("Intro: " + FAKE_BOOK['intro'])
+        else:
+            print("No active book selected.")
+        return
+        
+    shelf = load_shelf()
+    for book in shelf:
+        if book.get('name') == current_book_id:
+            print(f"Title:  {book.get('name', '[No Name]')}")
+            print(f"Author: {book.get('author', '[No Author]')}")
+            print(f"\nIntro:\n{book.get('intro', '[No Intro]')}")
+            return
+            
+    print("Active book not found in shelf.")
+
+
+def _read_book(args: list[str]) -> None:
+    """Implement /novel read <index>."""
+    if not args:
+        print("Usage: /novel read <index>")
+        return
+        
+    try:
+        index = int(args[0])
+    except ValueError:
+        print("Index must be an integer.")
+        return
+        
+    shelf = load_shelf()
+    if index < 1 or index > len(shelf):
+        print("Invalid shelf index.")
+        return
+        
+    book = shelf[index - 1]
+    name = book.get('name')
+    if not name:
+        print("Cannot read book: Book name is missing in shelf data.")
+        return
+        
+    set_active_book(name)
+    print(f"Now reading: {name}")
+
+
+_RECOGNIZED = {"next", "prev", "search", "toc", "shelf", "use", "add", "info", "read"}
 
 
 def dispatch(args: list[str]) -> None:
@@ -229,10 +358,16 @@ def dispatch(args: list[str]) -> None:
         _advance(-1)
     elif cmd == "search":
         _search_books(args[1:])
+    elif cmd == "add":
+        _add_book(args[1:])
+    elif cmd == "info":
+        _info_book()
+    elif cmd == "read":
+        _read_book(args[1:])
     elif cmd == "toc":
         print(STUB_COMMANDS['toc'])
     elif cmd == "shelf":
-        print(STUB_COMMANDS['shelf'])
+        _list_shelf()
     elif cmd == "use":
         _use_source(args[1:])
     else:
