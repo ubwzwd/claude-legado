@@ -10,7 +10,7 @@ from novel.display import stream_chapter
 from novel.state import ensure_dirs, load_state, save_state, SOURCES_DIR, save_search_cache, load_search_cache, load_shelf, save_shelf, set_active_book
 from novel.data.fake_book import FAKE_BOOK, get_fake_chapter
 from novel.rules._source import load_book_source
-from novel.http import fetch, follow_toc_pages
+from novel.http import fetch, follow_toc_pages, follow_content_pages
 from novel.rules import evaluate_list, evaluate
 
 STUB_COMMANDS = {
@@ -29,47 +29,123 @@ def _bootstrap_state(state: dict) -> dict:
     return state
 
 
-def _stream_current() -> None:
-    """Load state, stream the current chapter, save state."""
-    state = load_state()
-    state = _bootstrap_state(state)
-    chapter = get_fake_chapter(state['chapter_index'])
-    if chapter is None:
-        print("No more chapters. Use /novel prev to go back.")
+def _get_active_book_from_shelf(state: dict) -> dict | None:
+    current_id = state.get('current_book')
+    if not current_id or current_id == 'fake-book-01':
+        return None
+    shelf = load_shelf()
+    for book in shelf:
+        if book.get('name') == current_id:
+            return book
+    return None
+
+
+def _fetch_and_stream(state: dict, offset: int = 0) -> None:
+    """Fetch chapter text and stream it, saving BEFORE fetching."""
+    source_path_str = state.get('source')
+    book = _get_active_book_from_shelf(state)
+    
+    if source_path_str == 'builtin' or not book:
+        state = _bootstrap_state(state)
+        new_index = state['chapter_index'] + offset
+        total = len(FAKE_BOOK['chapters'])
+        if new_index < 0:
+            print("Already at the first chapter.")
+            return
+        if new_index >= total:
+            print("Already at the last chapter.")
+            return
+            
+        state['chapter_index'] = new_index
+        save_state(state)  # Save progress first
+        
+        chapter = get_fake_chapter(new_index)
+        stream_chapter(
+            chapter_num=new_index + 1,
+            title=chapter['title'],
+            content=chapter['content'],
+            chapter_index=new_index,
+            total=total,
+        )
         return
-    total = len(FAKE_BOOK['chapters'])
-    stream_chapter(
-        chapter_num=state['chapter_index'] + 1,
-        title=chapter['title'],
-        content=chapter['content'],
-        chapter_index=state['chapter_index'],
-        total=total,
-    )
-    save_state(state)
-
-
-def _advance(delta: int) -> None:
-    """Advance chapter_index by delta (+1 for next, -1 for prev), stream, save."""
-    state = load_state()
-    state = _bootstrap_state(state)
-    new_index = state['chapter_index'] + delta
-    total = len(FAKE_BOOK['chapters'])
+        
+    # Real Book Path
+    chapters = book.get('chapters')
+    if not chapters:
+        print("This book has no chapters. Run /novel toc and select a page to fetch TOC.")
+        return
+        
+    new_index = state.get('chapter_index', 0) + offset
+    total = len(chapters)
     if new_index < 0:
         print("Already at the first chapter.")
         return
     if new_index >= total:
         print("Already at the last chapter.")
         return
+        
+    # [D-10] Save progress state before streaming/fetching
     state['chapter_index'] = new_index
-    chapter = get_fake_chapter(new_index)
+    save_state(state)
+    
+    ch = chapters[new_index]
+    ch_url = ch.get('url')
+    ch_name = ch.get('name', f"Chapter {new_index+1}")
+    
+    if not ch_url:
+        print("Invalid chapter URL.")
+        return
+        
+    try:
+        source = load_book_source(Path(source_path_str))
+    except Exception as e:
+        print(f"Error loading source: {e}")
+        return
+        
+    rule_next_content = source.get('ruleContentNextUrl', '')
+    abs_ch_url = urllib.parse.urljoin(source['bookSourceUrl'], ch_url)
+    
+    pages_html = follow_content_pages(
+        start_url=abs_ch_url,
+        fetch_fn=lambda u: fetch(urllib.parse.urljoin(source['bookSourceUrl'], u), source)[0],
+        eval_fn=lambda r, h: str(evaluate(r, h) or ''),
+        next_url_rule=rule_next_content
+    )
+    
+    rule_content = source.get('ruleContent')
+    if not rule_content:
+        print("Source missing ruleContent.")
+        return
+        
+    content_parts = []
+    for p_html in pages_html:
+        extracted = evaluate(rule_content, p_html)
+        if isinstance(extracted, list):
+             content_parts.extend(extracted)
+        else:
+             content_parts.append(str(extracted or ''))
+             
+    full_content = "\n".join([str(c) for c in content_parts if c])
+    
     stream_chapter(
         chapter_num=new_index + 1,
-        title=chapter['title'],
-        content=chapter['content'],
+        title=ch_name,
+        content=full_content,
         chapter_index=new_index,
-        total=total,
+        total=total
     )
-    save_state(state)
+
+
+def _stream_current() -> None:
+    """Load state, stream the current chapter, save state."""
+    state = load_state()
+    _fetch_and_stream(state, 0)
+
+
+def _advance(delta: int) -> None:
+    """Advance chapter_index by delta (+1 for next, -1 for prev), stream, save."""
+    state = load_state()
+    _fetch_and_stream(state, delta)
 
 
 def _use_source(args: list[str]) -> None:

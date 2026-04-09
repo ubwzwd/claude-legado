@@ -151,3 +151,55 @@ def test_toc_flow(capsys, fake_source, monkeypatch):
     assert "chapters" in shelf[0]
     assert len(shelf[0]["chapters"]) == 2
     assert shelf[0]["chapters"][0]["name"] == "Chapter 1"
+
+
+def test_reading_flow(capsys, fake_source, monkeypatch):
+    import novel.state
+    monkeypatch.setattr(novel.state, "STATE_DIR", fake_source.parent)
+    novel.state.SEARCH_CACHE_FILE = fake_source.parent / "search_cache.json"
+    novel.state.SHELF_FILE = fake_source.parent / "shelf.json"
+    novel.state.STATE_FILE = fake_source.parent / "state.json"
+    novel.state.ensure_dirs()
+    
+    # Configure fake source for content
+    source_config = json.loads(fake_source.read_text())
+    source_config["ruleContent"] = "$.content"
+    source_config["ruleContentNextUrl"] = "$.nextPage"
+    fake_source.write_text(json.dumps(source_config))
+    
+    dispatch(["use", str(fake_source)])
+    
+    # Pre-populate shelf with chapter cache
+    shelf = [{
+        "name": "Read Book",
+        "author": "Author",
+        "chapters": [
+            {"name": "Chapter 1", "url": "/ch1/1"}
+        ]
+    }]
+    novel.state.save_shelf(shelf)
+    novel.state.set_active_book("Read Book")
+    
+    with respx.mock:
+        page_1 = {
+            "content": "This is page 1 content.",
+            "nextPage": "/ch1/2"
+        }
+        page_2 = {
+            "content": "This is page 2 content.",
+            "nextPage": ""
+        }
+        respx.get("https://example.com/ch1/1").mock(return_value=Response(200, json=page_1))
+        respx.get("https://example.com/ch1/2").mock(return_value=Response(200, json=page_2))
+        
+        # Read the chapter (trigger _stream_current)
+        dispatch([])
+        
+    captured = capsys.readouterr().out
+    assert "This is page 1 content." in captured
+    assert "This is page 2 content." in captured
+    assert "Chapter 1" in captured
+    
+    # Verify state saved
+    state = novel.state.load_state()
+    assert state['chapter_index'] == 0
