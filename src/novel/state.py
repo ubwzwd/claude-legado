@@ -7,6 +7,7 @@ import pathlib
 STATE_DIR: pathlib.Path = pathlib.Path.home() / '.claude-legado'
 STATE_FILE: pathlib.Path = STATE_DIR / 'state.json'
 SHELF_FILE: pathlib.Path = STATE_DIR / 'shelf.json'
+SEARCH_CACHE_FILE: pathlib.Path = STATE_DIR / 'search_cache.json'
 SOURCES_DIR: pathlib.Path = STATE_DIR / 'sources'
 
 DEFAULT_STATE: dict = {
@@ -58,3 +59,23 @@ def save_shelf(shelf: list) -> None:
     tmp = SHELF_FILE.with_suffix('.tmp')
     tmp.write_text(json.dumps(shelf, ensure_ascii=False, indent=2), encoding='utf-8')
     tmp.replace(SHELF_FILE)
+
+
+def load_search_cache() -> list[dict]:
+    """Load search cache from SEARCH_CACHE_FILE. Returns empty list on missing/corrupt."""
+    ensure_dirs()
+    if not SEARCH_CACHE_FILE.exists():
+        return []
+    try:
+        return json.loads(SEARCH_CACHE_FILE.read_text(encoding='utf-8'))
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def save_search_cache(books: list[dict]) -> None:
+    """Atomically write search cache list to SEARCH_CACHE_FILE (tmp + rename)."""
+    ensure_dirs()
+    tmp = SEARCH_CACHE_FILE.with_suffix('.tmp')
+    tmp.write_text(json.dumps(books, ensure_ascii=False, indent=2), encoding='utf-8')
+    tmp.replace(SEARCH_CACHE_FILE)
+
