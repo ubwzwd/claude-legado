@@ -12,6 +12,9 @@ dependencies = [
     "cssselect>=1.4",
     "jsonpath-ng>=1.8",
     "quickjs>=1.19",
+    "httpx>=0.28",
+    "charset-normalizer>=3.3",
+    "respx>=0.21",
 ]
 
 [tool.setuptools.packages.find]
