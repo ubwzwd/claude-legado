@@ -12,7 +12,10 @@ Reads novels through any legado-compatible book source, displayed as convincing 
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Load and parse legado book source JSON format (书源) — Validated in Phase 2
+- [x] HTTP transport with custom headers, GBK encoding, cookie support — Validated in Phase 3
+- [x] `/novel use <source.json>` loads and stores book sources — Validated in Phase 3
+- [x] Multi-page TOC/content pagination — Validated in Phase 3
 
 ### Active
 
@@ -75,4 +78,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-06 after initialization*
+*Last updated: 2026-04-09 after Phase 03 completion*
