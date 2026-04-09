@@ -18,7 +18,7 @@
 
 ### Streaming Display
 
-- [ ] **DISP-01**: Chapter content streams character-by-character mimicking Claude AI response output
+- [x] **DISP-01**: Chapter content streams character-by-character mimicking Claude AI response output
 - [ ] **DISP-02**: Variable delay per character (15-40ms base, longer pauses at `。！？`)
 - [ ] **DISP-03**: Occasional burst chunks (8-15 chars) to mimic real LLM token streaming
 - [ ] **DISP-04**: CJK double-width characters handled correctly (no overflow, no misaligned lines)
@@ -29,7 +29,7 @@
 ### State Persistence
 
 - [x] **STATE-01**: Reading state persisted to `~/.claude-legado/state.json` (current book, chapter index, source)
-- [ ] **STATE-02**: `/novel` with no args resumes from last saved position automatically
+- [x] **STATE-02**: `/novel` with no args resumes from last saved position automatically
 - [ ] **STATE-03**: Bookshelf persisted to `~/.claude-legado/shelf.json` (list of added books)
 - [ ] **STATE-04**: Loaded book sources persisted to `~/.claude-legado/sources/`
 
@@ -59,7 +59,7 @@
 - [x] **FLOW-01**: Search: build search URL from template → fetch → parse `ruleSearch` → return book list
 - [x] **FLOW-02**: Book info: fetch book detail page → parse `ruleBookInfo` → extract title/author/cover/intro
 - [x] **FLOW-03**: TOC: fetch TOC page → parse `ruleToc` → return ordered chapter list with URLs
-- [ ] **FLOW-04**: Content: fetch chapter URL → parse `ruleContent` → return clean text
+- [x] **FLOW-04**: Content: fetch chapter URL → parse `ruleContent` → return clean text
 - [x] **FLOW-05**: Add book from search result to shelf with first TOC fetch
 
 ## v2 Requirements
