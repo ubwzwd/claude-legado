@@ -63,7 +63,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — HTTP client + encoding + /novel use: _client.py (headers, fetch, cookie jar), _encoding.py (charset cascade), /novel use command wiring (HTTP-01, HTTP-02, HTTP-03)
-- [ ] 03-02-PLAN.md — Pagination + ajax wiring: _pagination.py (follow_toc_pages, follow_content_pages), _js.py two-pass ajax injection (HTTP-04, HTTP-05)
+- [x] 03-02-PLAN.md — Pagination + ajax wiring: _pagination.py (follow_toc_pages, follow_content_pages), _js.py two-pass ajax injection (HTTP-04, HTTP-05)
 
 ### Phase 4: Read Pipeline
 **Goal**: A user can search for a book, add it to the shelf, open its TOC, and read a chapter — all against a real live novel source
