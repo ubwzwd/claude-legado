@@ -78,7 +78,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 04-01: Search flow — build search URL from template, fetch, apply `ruleSearch`, return formatted book list (`FLOW-01`)
+- [x] 04-01: Search flow — build search URL from template, fetch, apply `ruleSearch`, return formatted book list (`FLOW-01`)
 - [ ] 04-02: Book info + shelf add — fetch detail page, apply `ruleBookInfo`, persist to `shelf.json` with initial TOC fetch (`FLOW-02`, `FLOW-05`)
 - [ ] 04-03: TOC flow — fetch TOC pages, apply `ruleToc`, collect ordered chapter list, display via `/novel toc` (`FLOW-03`)
 - [ ] 04-04: Content flow — fetch chapter URL, apply `ruleContent`, clean text, stream via display engine (`FLOW-04`)
