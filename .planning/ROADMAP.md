@@ -97,7 +97,7 @@ Plans:
 Plans:
 - [x] 05-01: Error handling hardening — network errors, rule parse failures, missing state, graceful degradation
 - [x] 05-02: Bookshelf UX — `/novel shelf` display with progress, `/novel toc` chapter count and current marker
-- [ ] 05-03: README and setup — installation steps, dependency list, example book source, usage walkthrough
+- [x] 05-03: README and setup — installation steps, dependency list, example book source, usage walkthrough
 
 ## Progress
 
