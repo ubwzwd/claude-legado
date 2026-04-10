@@ -110,4 +110,4 @@ PYTHONPATH=src python3 -m novel
 
 ## License
 
-MIT
+GPL-3.0
