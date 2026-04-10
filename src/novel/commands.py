@@ -6,9 +6,8 @@ import shutil
 import urllib.parse
 from pathlib import Path
 
-from novel.display import stream_chapter
+from novel.display import stream_chapter, stream_error
 from novel.state import ensure_dirs, load_state, save_state, SOURCES_DIR, save_search_cache, load_search_cache, load_shelf, save_shelf, set_active_book
-from novel.data.fake_book import FAKE_BOOK, get_fake_chapter
 from novel.rules._source import load_book_source
 from novel.http import fetch, follow_toc_pages, follow_content_pages
 from novel.rules import evaluate_list, evaluate
@@ -20,18 +19,9 @@ STUB_COMMANDS = {
 }
 
 
-def _bootstrap_state(state: dict) -> dict:
-    """If no book is loaded, auto-load the builtin fake book at chapter 0."""
-    if state['current_book'] is None:
-        state['current_book'] = FAKE_BOOK['title']
-        state['chapter_index'] = 0
-        state['source'] = 'builtin'
-    return state
-
-
 def _get_active_book_from_shelf(state: dict) -> dict | None:
     current_id = state.get('current_book')
-    if not current_id or current_id == 'fake-book-01':
+    if not current_id:
         return None
     shelf = load_shelf()
     for book in shelf:
@@ -45,28 +35,8 @@ def _fetch_and_stream(state: dict, offset: int = 0) -> None:
     source_path_str = state.get('source')
     book = _get_active_book_from_shelf(state)
     
-    if source_path_str == 'builtin' or not book:
-        state = _bootstrap_state(state)
-        new_index = state['chapter_index'] + offset
-        total = len(FAKE_BOOK['chapters'])
-        if new_index < 0:
-            print("Already at the first chapter.")
-            return
-        if new_index >= total:
-            print("Already at the last chapter.")
-            return
-            
-        state['chapter_index'] = new_index
-        save_state(state)  # Save progress first
-        
-        chapter = get_fake_chapter(new_index)
-        stream_chapter(
-            chapter_num=new_index + 1,
-            title=chapter['title'],
-            content=chapter['content'],
-            chapter_index=new_index,
-            total=total,
-        )
+    if not book or state.get('current_book') is None:
+        stream_error("Claude hasn't loaded a book yet. Please load a source with /novel use or read the README for setup instructions.")
         return
         
     # Real Book Path
@@ -99,18 +69,22 @@ def _fetch_and_stream(state: dict, offset: int = 0) -> None:
     try:
         source = load_book_source(Path(source_path_str))
     except Exception as e:
-        print(f"Error loading source: {e}")
+        stream_error(f"Failed to load source: {e}")
         return
         
     rule_next_content = source.get('ruleContentNextUrl', '')
     abs_ch_url = urllib.parse.urljoin(source['bookSourceUrl'], ch_url)
     
-    pages_html = follow_content_pages(
-        start_url=abs_ch_url,
-        fetch_fn=lambda u: fetch(urllib.parse.urljoin(source['bookSourceUrl'], u), source)[0],
-        eval_fn=lambda r, h: str(evaluate(r, h) or ''),
-        next_url_rule=rule_next_content
-    )
+    try:
+        pages_html = follow_content_pages(
+            start_url=abs_ch_url,
+            fetch_fn=lambda u: fetch(urllib.parse.urljoin(source['bookSourceUrl'], u), source)[0],
+            eval_fn=lambda r, h: str(evaluate(r, h) or ''),
+            next_url_rule=rule_next_content
+        )
+    except Exception as e:
+        stream_error(f"Failed to stream chapter: {e}")
+        return
     
     rule_content = source.get('ruleContent')
     if not rule_content:
@@ -162,8 +136,8 @@ def _use_source(args: list[str]) -> None:
 
     try:
         source = load_book_source(path)
-    except (ValueError, json.JSONDecodeError, OSError) as e:
-        print(f'Error loading source: {e}')
+    except Exception as e:
+        stream_error(f"Failed to load source: {e}")
         return
 
     ensure_dirs()
@@ -204,8 +178,8 @@ def _search_books(args: list[str]) -> None:
 
     try:
         source = load_book_source(Path(source_path_str))
-    except (ValueError, json.JSONDecodeError, OSError) as e:
-        print(f'Error loading source: {e}')
+    except Exception as e:
+        stream_error(f"Failed to load source: {e}")
         return
 
     search_url_template = source.get('searchUrl')
@@ -220,7 +194,7 @@ def _search_books(args: list[str]) -> None:
     try:
         content, _ = fetch(url, source)
     except Exception as e:
-        print(f'Error fetching search results: {e}')
+        stream_error(f"Failed to fetch search results: {e}")
         return
 
     rule_search = source.get('ruleSearch')
@@ -231,7 +205,7 @@ def _search_books(args: list[str]) -> None:
     try:
         items = evaluate_list(rule_search, content)
     except Exception as e:
-        print(f'Error evaluating search rules: {e}')
+        stream_error(f"Failed to evaluate search rules: {e}")
         return
 
     books = []
@@ -314,8 +288,8 @@ def _add_book(args: list[str]) -> None:
          
     try:
          source = load_book_source(Path(source_path_str))
-    except (ValueError, json.JSONDecodeError, OSError) as e:
-         print(f'Error loading source: {e}')
+    except Exception as e:
+         stream_error(f"Failed to load source: {e}")
          return
          
     book_url = book.get('bookUrl')
@@ -328,7 +302,7 @@ def _add_book(args: list[str]) -> None:
     try:
          content, _ = fetch(book_url, source)
     except Exception as e:
-         print(f'Error fetching book info: {e}')
+         stream_error(f"Failed to fetch book info: {e}")
          return
          
     rule_intro = source.get('ruleBookInfoIntro', '')
@@ -369,7 +343,7 @@ def _show_toc(args: list[str]) -> None:
     """Implement /novel toc <page>."""
     state = load_state()
     current_book_id = state.get('current_book')
-    if not current_book_id or current_book_id == 'fake-book-01':
+    if not current_book_id:
         print("No active book selected.")
         return
         
@@ -392,7 +366,7 @@ def _show_toc(args: list[str]) -> None:
     try:
          source = load_book_source(Path(source_path_str))
     except Exception as e:
-         print(f'Error loading source: {e}')
+         stream_error(f"Failed to load source: {e}")
          return
          
     toc_url = book.get('tocUrl') or book.get('bookUrl')
@@ -470,13 +444,8 @@ def _info_book() -> None:
     """Implement /novel info."""
     state = load_state()
     current_book_id = state.get('current_book')
-    if not current_book_id or current_book_id == 'fake-book-01':
-        if current_book_id == 'fake-book-01':
-            print("Title: " + FAKE_BOOK['title'])
-            print("Author: " + FAKE_BOOK['author'])
-            print("Intro: " + FAKE_BOOK['intro'])
-        else:
-            print("No active book selected.")
+    if not current_book_id:
+        print("No active book selected.")
         return
         
     shelf = load_shelf()
