@@ -12,21 +12,20 @@ Reads novels through any legado-compatible book source, displayed as convincing 
 
 ### Validated
 
-- [x] Load and parse legado book source JSON format (书源) — Validated in Phase 2
-- [x] HTTP transport with custom headers, GBK encoding, cookie support — Validated in Phase 3
-- [x] `/novel use <source.json>` loads and stores book sources — Validated in Phase 3
-- [x] Multi-page TOC/content pagination — Validated in Phase 3
+- [x] **Legado Support**: Parse book source JSON (CSS, XPath, JSONPath, JS) — v1.0
+- [x] **HTTP Layer**: Transport with custom headers, GBK encoding, cookie support — v1.0
+- [x] **Claude Skill**: Integration via `.claude/commands/` slash commands — v1.0
+- [x] **Camouflage**: Character-by-character streaming with fake AI preamble — v1.0
+- [x] **Library**: Bookshelf persistence and reading progress tracking — v1.0
+- [x] **Discovery**: Book search and TOC navigation flows — v1.0
+- [x] **Sources**: Managed source ingestion system (JSON/URL) — v1.0
 
-### Active
+### Active (Next Milestone: v1.1 - Security & Performance)
 
-- [ ] `/novel` skill that triggers from Claude Code session
-- [ ] Search for books using a loaded book source
-- [ ] Add found books to a local library (bookshelf)
-- [ ] Resume reading from last saved position automatically
-- [ ] Stream chapter content character-by-character, styled as Claude AI response
-- [ ] Keyboard shortcuts: next page, prev page, jump chapter, quit
-- [ ] Load and parse legado book source JSON format (书源)
-- [ ] Save reading progress locally (book + chapter + position)
+- [ ] **Configurable Speed**: Allow users to set streaming delay (slow/normal/fast)
+- [ ] **Site-Specific Rules**: Add predefined "Gold Standard" sources for popular sites
+- [ ] **Performance Audit**: Optimize QuickJS execution and TOC loading speeds
+- [ ] **Security Review**: Validate source JS expressions against local resource access
 
 ### Out of Scope
 
@@ -36,13 +35,10 @@ Reads novels through any legado-compatible book source, displayed as convincing 
 - Audio/TTS reading — visual terminal only
 - Social features (ratings, reviews, sharing) — personal reading tool
 
-## Context
-
-- **Inspiration**: [legado](https://github.com/gedoor/legado) — popular open-source Android novel reader with a powerful community book source ecosystem (数千个书源)
-- **Book source format**: legado's 书源 are JSON files describing how to scrape a novel website — search rules, chapter list rules, content rules. Community maintains thousands of them.
-- **Camouflage mechanism**: Content displayed using streaming (typewriter) output styled exactly like Claude Code's response format — fake prompt, fake thinking indicators, real novel text
-- **Target user**: Developer who wants to read novels during work hours without getting caught
-- **Platform**: Claude Code CLI skill (invoked via `/novel` in a Claude Code session)
+- **Platform**: Claude Code CLI skill (invoked via `/novel` and `/novel-*` commands)
+- **Tech Stack**: Python 3.10+, Rich (display), QuickJS (rule engine), Beautiful Soup (scraping)
+- **Codebase**: ~1,800 LOC of synchronous, robust terminal logic
+- **Camouflage**: Silent agent directive for slash commands ensures tool output flows naturally into the chat without duplication.
 
 ## Constraints
 
@@ -55,10 +51,11 @@ Reads novels through any legado-compatible book source, displayed as convincing 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Claude Code skill (not standalone CLI) | User works inside Claude Code anyway; /novel blends into existing workflow | — Pending |
-| Streaming output as camouflage | Most convincing disguise — looks exactly like Claude answering a question | — Pending |
-| Reuse legado book source format | Thousands of community sources immediately available; no need to write scrapers | — Pending |
-| New repo (not legado fork) | legado is Android/Kotlin; CLI is a different stack entirely. Credit legado in README | — Pending |
+| Claude Code skill | User works inside Claude Code anyway; /novel blends into existing workflow | ✓ Good |
+| Streaming output | Most convincing disguise — looks exactly like Claude answering a question | ✓ Good |
+| Reuse legado format | Access to thousands of community sources immediately | ✓ Good |
+| Silent agent directive | Prevents duplication of tool output in Claude Code chat | ✓ Good |
+| Managed sources | Tool handles book source ingestion to protect user from manual file management | ✓ Good |
 
 ## Evolution
 
@@ -78,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-09 after Phase 03 completion*
+*Last updated: 2026-04-10 after v1.0 Milestone completion*

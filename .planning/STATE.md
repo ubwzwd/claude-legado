@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-04-10T09:57:46.298Z"
+milestone: v1.1
+milestone_name: Security & Performance
+status: v1.0 milestone complete
+stopped_at: Phase 05 UAT
+last_updated: "2026-04-10T14:29:38.804Z"
 last_activity: 2026-04-10
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 16
-  completed_plans: 16
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 17
+  completed_plans: 19
   percent: 100
 ---
 
@@ -111,8 +111,12 @@ None.
 - HIGH risk: `java.ajax()` sync-in-JS — Phase 3 must implement as async wrapper injecting pre-fetched result into quickjs context before `eval_js()` call
 - HIGH risk: 笔趣阁 domain instability — ship with source import workflow, never hardcode URLs
 
+### Roadmap Evolution
+
+- Phase 6 added: Command Deconstruction: Refactor /novel into specialized slash commands (/novel-shelf, /novel-info, /novel-read, etc.) for better discovery and UX.
+
 ## Session Continuity
 
-Last session: 2026-04-10T09:55:22.650Z
-Stopped at: Completed 05-02-PLAN.md
-Resume file: None
+Last session: 2026-04-10T18:00:00Z
+Stopped at: Phase 05 UAT
+Resume file: .planning/phases/05-polish/05-UAT.md

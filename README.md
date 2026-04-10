@@ -24,56 +24,50 @@ claude-legado streams novel text character-by-character with variable delays tha
 git clone <repo-url> && cd claude_legado
 
 # Create a virtual environment and install
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-The project registers as a Claude Code slash-command automatically via `.claude/commands/novel.md`, so after installation you can use `/novel` directly inside Claude Code.
+The project registers a suite of Claude Code slash-commands automatically via `.claude/commands/`, so after installation you can use commands like `/novel-search` and `/novel-shelf` directly inside Claude Code.
 
 ## Quick Start
 
-### 1. Load a book source
+### 1. Add/Load a book source
 
-You need a Legado-format book-source JSON file. These are widely shared in Chinese novel-reading communities.
+You can ingest a Legado-format book-source JSON directly:
 
 ```
-/novel use ./my_source.json
+/novel-add-source https://example.com/source.json
 ```
 
-This copies the source into `~/.claude-legado/sources/` and sets it as the active source.
+Or just paste the JSON content if you have it. This stores and activates the source. You can list all sources with `/novel-sources`.
 
 ### 2. Search for a novel
 
 ```
-/novel search 斗破苍穹
+/novel-search 斗破苍穹
 ```
-
-Results are displayed as a numbered list.
 
 ### 3. Add a book to your shelf
 
 ```
-/novel add 1
+/novel-add 1
 ```
-
-Adds the first search result to your persistent shelf.
 
 ### 4. Select a book to read
 
 ```
-/novel read 1
+/novel-read 1
 ```
 
-Sets the first book on your shelf as the active book.
-
-### 5. Fetch the table of contents
+### 5. Browse table of contents
 
 ```
-/novel toc
+/novel-toc
 ```
 
-Displays chapters in paginated form. The current chapter is marked with `->`.
+The current chapter is marked with `->`.
 
 ### 6. Read
 
@@ -83,15 +77,17 @@ Displays chapters in paginated form. The current chapter is marked with `->`.
 /novel prev     # Previous chapter
 ```
 
-Text streams to the terminal with Claude-style delays, complete with a "thinking" preamble and chapter headers.
+Text streams with Claude-style delays and a "thinking" preamble.
 
 ## Other Commands
 
 | Command | Description |
 |---------|-------------|
-| `/novel shelf` | List books on your shelf with reading progress |
-| `/novel info` | Show details for the active book |
-| `/novel toc <page>` | Show a specific page of the table of contents |
+| `/novel-shelf` | List books on your shelf with reading progress |
+| `/novel-info` | Show details for the active book |
+| `/novel-toc <page>` | Show a specific page of the TOC |
+| `/novel-sources` | List all managed book sources |
+| `/novel-use <index>` | Switch active source by index |
 
 ## How It Works
 
@@ -105,9 +101,9 @@ Text streams to the terminal with Claude-style delays, complete with a "thinking
 You can also run commands directly:
 
 ```bash
-PYTHONPATH=src python -m novel use ./my_source.json
-PYTHONPATH=src python -m novel search "Title"
-PYTHONPATH=src python -m novel next
+PYTHONPATH=src python3 -m novel novel-sources
+PYTHONPATH=src python3 -m novel novel-search "Title"
+PYTHONPATH=src python3 -m novel
 ```
 
 ## License

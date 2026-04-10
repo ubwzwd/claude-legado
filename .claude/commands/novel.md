@@ -1,11 +1,11 @@
 ---
 name: novel
-description: Read Chinese web novels. Use when user invokes /novel or asks to read a novel.
-argument-hint: "[next|prev|search <query>|toc|shelf|use <path>]"
+description: Read the current chapter. Use 'next' or 'prev' subcommands to navigate.
+argument-hint: "[next|prev]"
 ---
 
-Run this bash command and output the result exactly as-is without adding any commentary:
+Run this bash command. It generates a formatted response for the user. Do not repeat the output in your response.
 
 ```bash
-PYTHONPATH=src python -m novel $ARGUMENTS
+PYTHONPATH=src python3 -m novel $ARGUMENTS
 ```
