@@ -9,8 +9,8 @@ from pathlib import Path
 from novel.display import stream_chapter, stream_error
 from novel.state import ensure_dirs, load_state, save_state, SOURCES_DIR, save_search_cache, load_search_cache, load_shelf, save_shelf, set_active_book
 from novel.rules._source import load_book_source
-from novel.http import fetch, follow_toc_pages, follow_content_pages
 from novel.rules import evaluate_list, evaluate
+import httpx
 
 STUB_COMMANDS = {
     'search': 'search: not yet implemented -- available in Phase 4',
@@ -167,6 +167,92 @@ def _use_source(args: list[str]) -> None:
     rules_line = ', '.join([f'{f} ✓' for f in rules_present] + [f'{f} —' for f in rules_absent])
     print(f'  Rules: {rules_line}')
     print(f'\nStored: {dest}')
+
+
+def _list_sources() -> None:
+    """Implement /novel-sources."""
+    ensure_dirs()
+    sources = list(SOURCES_DIR.glob('*.json'))
+    if not sources:
+        print("No book sources found in ~/.claude-legado/sources/")
+        return
+
+    state = load_state()
+    current_source = state.get('source', '')
+
+    print("Available Book Sources:")
+    for i, s in enumerate(sources, start=1):
+        active_marker = "*" if str(s) == current_source else " "
+        try:
+            with open(s, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                name = data.get('bookSourceName', s.name)
+        except Exception:
+            name = s.name
+        print(f"[{i}]{active_marker} {name} (file: {s.name})")
+
+
+def _add_source(args: list[str]) -> None:
+    """Implement /novel-add-source <json_or_url>."""
+    if not args:
+        print("Usage: /novel-add-source <json_content_or_url>")
+        return
+
+    input_data = ' '.join(args).strip()
+    
+    # Check if URL
+    if input_data.startswith(('http://', 'https://')):
+        print(f"Fetching source from {input_data}...")
+        try:
+            resp = httpx.get(input_data, timeout=10.0)
+            resp.raise_for_status()
+            content = resp.text
+        except Exception as e:
+            stream_error(f"Failed to fetch source from URL: {e}")
+            return
+    else:
+        content = input_data
+
+    # Parse and validate
+    try:
+        source_data = json.loads(content)
+        if isinstance(source_data, list):
+            # Legado sometimes exports multiple sources in a list
+            if not source_data:
+                stream_error("Empty source list provided.")
+                return
+            source_data = source_data[0]
+            
+        name = source_data.get('bookSourceName')
+        if not name:
+            stream_error("Invalid source: bookSourceName is missing.")
+            return
+    except json.JSONDecodeError:
+        stream_error("Invalid input: not a valid JSON string or URL.")
+        return
+    except Exception as e:
+        stream_error(f"Unexpected error parsing source: {e}")
+        return
+
+    # Sanitize name for filename
+    safe_name = "".join([c for c in name if c.isalnum() or c in (' ', '.', '_', '-')]).strip()
+    dest = SOURCES_DIR / f"{safe_name}.json"
+    
+    try:
+        ensure_dirs()
+        with open(dest, 'w', encoding='utf-8') as f:
+            json.dump(source_data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        stream_error(f"Failed to save source file: {e}")
+        return
+
+    # Activate it
+    state = load_state()
+    state['source'] = str(dest)
+    save_state(state)
+    
+    print(f"Successfully added and activated source: {name}")
+    print(f"Stored at: {dest}")
 
 
 def _search_books(args: list[str]) -> None:
@@ -499,9 +585,6 @@ def _read_book(args: list[str]) -> None:
     print(f"Now reading: {name}")
 
 
-_RECOGNIZED = {"next", "prev", "search", "toc", "shelf", "use", "add", "info", "read"}
-
-
 def dispatch(args: list[str]) -> None:
     """Route subcommand args to the correct handler.
 
@@ -509,26 +592,43 @@ def dispatch(args: list[str]) -> None:
         args: Argument list (typically sys.argv[1:]).
               Empty args or unrecognized first arg -> default handler (_stream_current).
     """
-    cmd = args[0] if args else None
-
-    if cmd == "next":
-        _advance(+1)
-    elif cmd == "prev":
-        _advance(-1)
-    elif cmd == "search":
-        _search_books(args[1:])
-    elif cmd == "add":
-        _add_book(args[1:])
-    elif cmd == "info":
-        _info_book()
-    elif cmd == "read":
-        _read_book(args[1:])
-    elif cmd == "toc":
-        _show_toc(args[1:])
-    elif cmd == "shelf":
-        _list_shelf()
-    elif cmd == "use":
-        _use_source(args[1:])
-    else:
-        # No args or unrecognized command -> default (stream current chapter)
+    if not args:
         _stream_current()
+        return
+
+    cmd = args[0]
+    sub_args = args[1:]
+
+    # Handle specialized entry points or subcommands
+    if cmd in ("next", "novel-next"):
+        _advance(+1)
+    elif cmd in ("prev", "novel-prev"):
+        _advance(-1)
+    elif cmd in ("search", "novel-search"):
+        _search_books(sub_args)
+    elif cmd in ("add", "novel-add"):
+        _add_book(sub_args)
+    elif cmd in ("info", "novel-info"):
+        _info_book()
+    elif cmd in ("read", "novel-read"):
+        _read_book(sub_args)
+    elif cmd in ("toc", "novel-toc"):
+        _show_toc(sub_args)
+    elif cmd in ("shelf", "novel-shelf"):
+        _list_shelf()
+    elif cmd in ("use", "novel-use"):
+        _use_source(sub_args)
+    elif cmd in ("sources", "novel-sources"):
+        _list_sources()
+    elif cmd in ("add-source", "novel-add-source"):
+        _add_source(sub_args)
+    else:
+        # Check if first arg is an integer (shorthand for /novel read <index>)
+        try:
+            int(cmd)
+            _read_book([cmd])
+        except ValueError:
+            # Not a command or index -> treat as query for reading
+            # But the current design is that /novel with no args reads current.
+            # We'll stick to that.
+            _stream_current()

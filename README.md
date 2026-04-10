@@ -1,111 +1,113 @@
 # claude-legado
 
-Read Chinese web novels in the terminal — disguised as Claude AI output.
+在终端里阅读小说 —— 完美伪装成 Claude AI 的输出。
 
-claude-legado streams novel text character-by-character with variable delays that mimic natural LLM token generation, making it look like Claude is "thinking" and then producing a response. It uses [Legado](https://github.com/gedoor/legado) book-source rule files (`.json`) to fetch content from web novel sites.
+[English Version](README_EN.md)
 
-## Features
+`claude-legado` 会精准模拟 LLM 的 Token 生成过程，以字符为单位流式输出小说内容，并带有随机延迟。从外观上看，就像是 Claude 正在“思考”并回答你的问题。它支持使用 [Legado (阅读)](https://github.com/gedoor/legado) 的书源 JSON 文件，让你能够访问数以千计的社区维护书源。
 
-- **Claude camouflage** — Output streams with a fake "thinking" preamble and realistic typing delays, burst chunks, and punctuation pauses so it looks like AI-generated text.
-- **Legado-compatible rule engine** — Supports CSS, JSONPath, XPath, JS, and regex rules from Legado book-source JSON files.
-- **Full reading pipeline** — Search → add to shelf → browse TOC → read chapters with `/novel next` and `/novel prev`.
-- **Progress tracking** — Remembers your position per book. Shelf shows chapter counts; TOC highlights the active chapter.
-- **Graceful errors** — Failures are printed in Claude's italic "thinking" style instead of stack traces.
+## 功能特性
 
-## Requirements
+- **Claude 完美伪装** — 输出流带有虚假的“思考中...”前缀、真实的打字延迟、脉冲式突发输出以及标点符号停顿，视觉效果与真实的 AI 生成文本完全一致。
+- **兼容 Legado 书源引擎** — 支持 Legado 书源中的 CSS、JSONPath、XPath、JS 以及正则表达式规则。
+- **完整阅读流程** — 搜索 → 添加到书架 → 浏览目录 → 通过 `/novel next` 和 `/novel prev` 自由阅读。
+- **进度追踪** — 自动记录每本书的阅读位置。书架显示章节总数，目录会高亮当前正在阅读的章节。
+- **优雅的错误处理** — 所有网络或解析错误都会以 Claude 经典的斜体“思考”风格打印，绝不泄露 Python 堆栈追踪。
+
+## 环境要求
 
 - Python 3.12+
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (for the `/novel` slash-command integration)
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (用于 `/novel` 斜杠命令集成)
 
-## Setup
+## 安装设置
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone <repo-url> && cd claude_legado
 
-# Create a virtual environment and install
+# 创建虚拟环境并安装
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-The project registers a suite of Claude Code slash-commands automatically via `.claude/commands/`, so after installation you can use commands like `/novel-search` and `/novel-shelf` directly inside Claude Code.
+该项目会自动通过 `.claude/commands/` 注册一系列 Claude Code 斜杠命令。安装完成后，你可以在 Claude Code 会话中直接使用 `/novel-search` 和 `/novel-shelf` 等命令。
 
-## Quick Start
+## 快速上手
 
-### 1. Add/Load a book source
+### 1. 添加/加载书源
 
-You can ingest a Legado-format book-source JSON directly:
+你可以直接导入 Legado 格式的书源 JSON：
 
 ```
 /novel-add-source https://example.com/source.json
 ```
 
-Or just paste the JSON content if you have it. This stores and activates the source. You can list all sources with `/novel-sources`.
+或者直接粘贴 JSON 内容。该命令会自动存储并激活该书源。你可以通过 `/novel-sources` 查看所有已管理书源。
 
-### 2. Search for a novel
+### 2. 搜索小说
 
 ```
 /novel-search 斗破苍穹
 ```
 
-### 3. Add a book to your shelf
+### 3. 添加到书架
 
 ```
 /novel-add 1
 ```
 
-### 4. Select a book to read
+### 4. 选择书籍阅读
 
 ```
 /novel-read 1
 ```
 
-### 5. Browse table of contents
+### 5. 浏览目录
 
 ```
 /novel-toc
 ```
 
-The current chapter is marked with `->`.
+当前章节会以 `->` 标记。
 
-### 6. Read
+### 6. 开始阅读
 
 ```
-/novel          # Read the current chapter
-/novel next     # Next chapter
-/novel prev     # Previous chapter
+/novel          # 阅读当前章节
+/novel next     # 下一章
+/novel prev     # 上一章
 ```
 
-Text streams with Claude-style delays and a "thinking" preamble.
+内容将以 Claude 风格的延迟和“思考”前缀流式输出。
 
-## Other Commands
+## 其他命令
 
-| Command | Description |
+| 命令 | 描述 |
 |---------|-------------|
-| `/novel-shelf` | List books on your shelf with reading progress |
-| `/novel-info` | Show details for the active book |
-| `/novel-toc <page>` | Show a specific page of the TOC |
-| `/novel-sources` | List all managed book sources |
-| `/novel-use <index>` | Switch active source by index |
+| `/novel-shelf` | 列出书架上的书籍及阅读进度 |
+| `/novel-info` | 显示当前书籍的详细信息 |
+| `/novel-toc <page>` | 显示目录的特定页面 |
+| `/novel-sources` | 列出所有已管理的基础书源 |
+| `/novel-use <index>` | 通过索引切换当前激活的书源 |
 
-## How It Works
+## 工作原理
 
-1. **Rule engine** — Legado source files define rules (CSS selectors, JSONPath expressions, XPath, JavaScript snippets, or regex) that extract book lists, chapter URLs, and content from HTML/JSON responses.
-2. **HTTP transport** — Fetches pages with custom headers/cookies from the source config, auto-detecting GBK encoding and converting to UTF-8.
-3. **Display engine** — Streams text character-by-character with randomized delays (15–40ms base, 60ms clause pauses, 150ms sentence pauses) and occasional burst chunks of 8–15 characters.
-4. **State persistence** — Reading state lives in `~/.claude-legado/state.json`; the bookshelf in `shelf.json`; sources in `sources/`.
+1. **规则引擎** — 书源文件定义了提取书籍列表、章节 URL 和内容的规则（CSS 选择器、JSONPath、XPath、JS 脚本或正则）。
+2. **HTTP 传输** — 根据书源配置发送带自定义 Header/Cookie 的请求，并自动检测 GBK 编码转换为 UTF-8。
+3. **渲染引擎** — 以字符为单位流式输出，带有随机延迟（基础 15–40ms，短句停顿 60ms，句末停顿 150ms）以及 8–15 字符的突发块。
+4. **状态持久化** — 阅读进度存于 `~/.claude-legado/state.json`，书架存于 `shelf.json`，书源存于 `sources/`。
 
-## Running Without Claude Code
+## 脱离 Claude Code 运行
 
-You can also run commands directly:
+你也可以在标准终端里直接运行：
 
 ```bash
 PYTHONPATH=src python3 -m novel novel-sources
-PYTHONPATH=src python3 -m novel novel-search "Title"
+PYTHONPATH=src python3 -m novel novel-search "书名"
 PYTHONPATH=src python3 -m novel
 ```
 
-## License
+## 开源协议
 
 MIT
