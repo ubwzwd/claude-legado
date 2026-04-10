@@ -137,3 +137,15 @@ def stream_chapter(
     print_chapter_header(chapter_num, title)
     stream_text(content)
     print_nav_hints(chapter_index, total)
+
+
+def stream_error(msg: str) -> None:
+    """Print an error message styled as Claude reasoning output.
+
+    Args:
+        msg: The error message to display.
+    """
+    from rich.console import Console
+
+    console = Console(markup=True, highlight=False)
+    console.print(f"[italic dim]*Claude encountered an issue: {msg}*[/italic dim]\n")
