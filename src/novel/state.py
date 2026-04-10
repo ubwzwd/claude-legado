@@ -46,7 +46,15 @@ def set_active_book(book_id: str) -> None:
     """Set the currently active book ID in state."""
     state = load_state()
     state['current_book'] = book_id
-    state['chapter_index'] = 0
+    
+    shelf = load_shelf()
+    book_chapter_index = 0
+    for book in shelf:
+        if book.get('name') == book_id:
+            book_chapter_index = book.get('chapter_index', 0)
+            break
+            
+    state['chapter_index'] = book_chapter_index
     save_state(state)
 
 

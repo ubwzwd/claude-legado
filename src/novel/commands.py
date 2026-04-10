@@ -58,6 +58,13 @@ def _fetch_and_stream(state: dict, offset: int = 0) -> None:
     state['chapter_index'] = new_index
     save_state(state)
     
+    shelf = load_shelf()
+    for b in shelf:
+        if b.get('name') == state.get('current_book'):
+            b['chapter_index'] = new_index
+            break
+    save_shelf(shelf)
+    
     ch = chapters[new_index]
     ch_url = ch.get('url')
     ch_name = ch.get('name', f"Chapter {new_index+1}")
@@ -334,9 +341,13 @@ def _list_shelf() -> None:
     for i, book in enumerate(shelf, start=1):
         name = book.get('name', '[No name extracted]')
         author = book.get('author', '[No author extracted]')
+        ch_idx = book.get('chapter_index', 0) + 1
+        total = len(book.get('chapters', []))
+        ch_info = f"(Chapter {ch_idx} / {total})" if total > 0 else f"(Chapter {ch_idx})"
+        
         # Just use name as pseudo ID for active marker since we don't have proper IDs yet
         active_marker = "*" if current_book_id == name else " "
-        print(f"[{i}]{active_marker} {name} - {author}")
+        print(f"[{i}]{active_marker} {name} - {author} {ch_info}")
 
 
 def _show_toc(args: list[str]) -> None:
@@ -435,9 +446,11 @@ def _show_toc(args: list[str]) -> None:
     end_idx = min(start_idx + per_page, len(chapters))
     
     print(f"TOC for '{book.get('name', 'Unknown')}' (Page {page}/{total_pages}):")
+    current_idx = state.get('chapter_index', 0)
     for i in range(start_idx, end_idx):
         ch = chapters[i]
-        print(f"[{i + 1}] {ch.get('name', '[No Name]')}")
+        marker = "->" if book.get('name') == current_book_id and i == current_idx else "  "
+        print(f"{marker} [{i + 1}] {ch.get('name', '[No Name]')}")
 
 
 def _info_book() -> None:
